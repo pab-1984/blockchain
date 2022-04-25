@@ -94,6 +94,8 @@ class Blockchain:
                     longest_chain = chain
         if longest_chain:
             self.chain = longest_chain
+            return True
+        return False
         
         
     
@@ -103,6 +105,9 @@ class Blockchain:
 app = Flask(__name__)
 # Si se obtiene un error 500, actualizar flask, reiniciar spyder y ejecutar la siguiente línea
 app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
+
+#crear la direccion del nodo del puerto 5001
+node_address = str(uuid4()).replace('_', '')
 
 # Crear una Blockchain
 blockchain = Blockchain()
@@ -114,12 +119,14 @@ def mine_block():
     previous_proof = previous_block['proof']
     proof = blockchain.proof_of_work(previous_proof)
     previous_hash = blockchain.hash(previous_block)
+    blockchain.add_transactions(emisor = node_address, receptor = 'yogui', mount = 10)
     block = blockchain.create_block(proof, previous_hash)
     response = {'message' : '¡Enhorabuena, has minado un nuevo bloque!', 
                 'index': block['index'],
                 'timestamp' : block['timestamp'],
                 'proof' : block['proof'],
-                'previous_hash' : block['previous_hash']}
+                'previous_hash' : block['previous_hash'],
+                'transactions' : block['transactions']}
     return jsonify(response), 200
 
 # Obtener la cadena de bloques al completo
@@ -138,6 +145,12 @@ def is_valid():
     else:
         response = {'message' : 'Houston, tenemos un problema. La cadena de bloques no es válida.'}
     return jsonify(response), 200  
+
+# Añadir una nueva transaccion a la cadena de bloques
+@app.route('/add_transaction', methods = ['POST'])
+def add_transaction():
+    
+
 
 # Ejecutar la app
 app.run(host = '0.0.0.0', port = 5001)
