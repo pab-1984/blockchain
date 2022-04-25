@@ -13,19 +13,25 @@ import datetime
 import hashlib
 import json
 from flask import Flask, jsonify
+import requests
+from uuid import uuid4
+from urllib.parse import urlparse
 
 # Parte 1 - Crear la Cadena de Bloques
 class Blockchain:
     
     def __init__(self):
         self.chain = []
+        self.transactions = []
         self.create_block(proof = 1, previous_hash = '0')
+        self.node = set()
         
     def create_block(self, proof, previous_hash):
         block = {'index' : len(self.chain)+1,
                  'timestamp' : str(datetime.datetime.now()),
                  'proof' : proof,
-                 'previous_hash': previous_hash}
+                 'previous_hash': previous_hash,
+                 'transactions': self.transactions}
         self.chain.append(block)
         return block
 
@@ -62,6 +68,26 @@ class Blockchain:
             previous_block = block
             block_index += 1
         return True
+    
+    def add_transactions(self, emisor, receptor, mount):
+        self.transactions.append({'emisor': emisor,
+                                  'receptor': receptor,
+                                  'mount': mount})
+        previous_block = self.previous_block()
+        return previous_block['index'] + 1
+    
+    def add_node(self, address):
+        parsed_url = urlparse(address)
+        self.node.add(parsed_url.netloc)
+    
+    def replacechain(self):
+        network = self.node
+        longest_chain = None
+        max_length = len(self.chain)
+        for node in network:
+            response = requests.get(f'http://{node}/get_chain')
+        
+        
     
 # Parte 2 - Minado de un Bloque de la Cadena
 
@@ -106,4 +132,4 @@ def is_valid():
     return jsonify(response), 200  
 
 # Ejecutar la app
-app.run(host = '0.0.0.0', port = 5000)
+app.run(host = '0.0.0.0', port = 5001)
