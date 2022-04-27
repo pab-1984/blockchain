@@ -149,7 +149,26 @@ def is_valid():
 # Añadir una nueva transaccion a la cadena de bloques
 @app.route('/add_transaction', methods = ['POST'])
 def add_transaction():
-    
+    json = requests.get_json()
+    transactions_key = ['emisor' , 'receptor' , 'receptor']
+    if not all(key in json for key in transactions_key):
+        return 'Faltan elementos en la transaccion' , 400
+    index = blockchain.add_transactions(json['emisor'], json['receptor'], json['mount'])
+    response = {'message': f'La transaccion se a añadido al bloque {index}'}
+    return jsonify(response), 201
+
+@app.route('/connect_node', methods = ['POST'])
+def connect_node():
+    json = requests.get_json()
+    nodes = json.get('nodes')
+    if nodes is None:
+        return 'no hay nodos para agregar'
+    for node in nodes:
+        blockchain.add_node(node)
+    response = {'message': 'Todos los nodos fueron conectados. La cadena de la moneda conetiene ahora los siguientes nodos: ',
+                ''}
+
+
 
 
 # Ejecutar la app
